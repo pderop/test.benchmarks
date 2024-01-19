@@ -1,5 +1,5 @@
 ##
-# github actions for reactor-netty / rsocket benchmarks
+# github actions for reactor-netty 11x benchmarks
 ##
 name: Reactor Netty Benchmarks
 
@@ -35,8 +35,37 @@ on:
         required: false
 
 jobs:
-  # Reactor Netty 1.1.x based benchmarks
-  benchmark-rn-11x:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+        matrix:
+          app: [frontend-rn-11x, backend-rn-11x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '19'
+          distribution: 'temurin'
+
+      - name: Compile
+        run: |-
+          ./gradlew ${{ matrix.app }}::build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}
+          path: ${{ matrix.app }}/build/libs/*.jar
+
+  run-benchmarks-rn-11x:
+    needs: build
     strategy:
       max-parallel: 1
       matrix:
@@ -48,8 +77,8 @@ jobs:
     with:
       appname: benchmark-rn-11x-${{ matrix.protocol }}
       protocol: ${{ matrix.protocol }}
-      frontend-app: frontend-rn-11x-1.0.0
-      backend-app: backend-rn-11x-1.0.0
+      frontend-app: frontend-rn-11x
+      backend-app: backend-rn-11x
       simulations: ${{ inputs.simulations-rn || 'Remote;TextPlain;Echo;JsonGet;JsonPost;HtmlGet' }}
       duration: ${{ inputs.duration || '60' }}
       alert-threshold: ${{ inputs.alert-threshold || '125%' }}

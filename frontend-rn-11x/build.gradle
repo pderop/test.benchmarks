@@ -20,6 +20,7 @@ shadowJar {
     archiveFileName = "${project.name}-${project.version}.jar"
     // Merge service provider files
     mergeServiceFiles()
+    version = ''
 }
 
 project.tasks.distTar.dependsOn(shadowJar)

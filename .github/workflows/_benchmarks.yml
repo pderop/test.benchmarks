@@ -196,20 +196,27 @@ jobs:
 #        run: ./gradlew publishToMavenLocal
 #        working-directory: ./reactor-netty
 
-      - name: Compile benchmark projects
-        shell: bash
-        run: |-
-          env|grep "_VM"
-          ./gradlew build
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: $FRONTEND_APP
+          path: artifacts
+
+      - name: Download backend artifact
+        if: ${{ env.FRONTEND_APP != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: $BACKEND_APP
+          path: artifacts
 
       # Create frontend/backend VMs
       - name: Create frontend/backend VMs
         run: |-
-          jarfile=$(find . -name "$FRONTEND_APP.jar") 
+          jarfile=$(find artifacts -name "$FRONTEND_APP.jar") 
           gsutil cp $jarfile gs://$BUCKET/apps/$FRONTEND_RENAMED_APP.jar;
           if [ -n $BACKEND_APP ]; then
             echo "Creating backend vm ..."
-            jarfile=$(find . -name "$BACKEND_APP.jar") 
+            jarfile=$(find artifacts -name "$BACKEND_APP.jar") 
             gsutil cp $jarfile gs://$BUCKET/apps/$BACKEND_RENAMED_APP.jar;
             gcloud compute instances create-with-container $BACKEND_VM \
               --machine-type=$MACHINE_TYPE \
