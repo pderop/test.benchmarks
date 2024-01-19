@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
         matrix:
-          app: [frontend-rn-11x, backend-rn-11]
+          app: [frontend-rn-11x, backend-rn-11x]
 
     steps:
       - name: Checkout code
