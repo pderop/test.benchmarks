@@ -51,7 +51,7 @@ jobs:
 
       - name: Compile
         run: |-
-          ./gradlew build
+          ./gradlew ${{ matrix.app }}:build
 
       - name: Upload  artifacts
         uses: actions/upload-artifact@v4
