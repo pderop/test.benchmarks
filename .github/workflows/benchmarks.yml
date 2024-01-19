@@ -1,7 +1,7 @@
 ##
 # github actions for reactor-netty 11x benchmarks
 ##
-name: benchmarks-reactor-netty-11x
+name: benchmarks-run
 
 on:
   #  schedule:
