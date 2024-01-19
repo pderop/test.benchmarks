@@ -140,7 +140,7 @@ jobs:
   update-readme:
     uses: ./.github/workflows/_update-readme.yml
 #    needs: [ benchmark-rn-11x, benchmark-rn-20x, benchmark-rs ]
-    needs: [ benchmark-rn-11x ]
+    needs: [ run-benchmarks-rn-11x ]
     secrets: inherit
     permissions:
       contents: write
