@@ -73,15 +73,27 @@ jobs:
           fetch-depth: 0
 
       - name: Compile Reactor Pool PR
-        run: ./gradlew publishToMavenLocal
         working-directory: ./reactor-pool-repo
+        run: |-
+          env
+          echo $RUNNER_TMP
+          export MAVEN_LOCAL_REPO="${RUNNER_TEMP}/.m2/repository"
+          ./gradlew publishToMavenLocal
 
       - name: Compile Reactor Netty PR
-        run: ./gradlew publishToMavenLocal
         working-directory: ./reactor-netty-repo
+        run: |-
+          env
+          echo $RUNNER_TMP
+          export MAVEN_LOCAL_REPO="${RUNNER_TEMP}/.m2/repository"
+          ./gradlew publishToMavenLocal
 
       - name: Compile Frontend
-        run: ./gradlew frontend-rn-h2concurrent:build
+        run: |-
+          env
+          echo $RUNNER_TMP
+          export MAVEN_LOCAL_REPO="${RUNNER_TEMP}/.m2/repository"
+          ./gradlew frontend-rn-h2concurrent:build
 
       - name: Compile Backend
         run: ./gradlew frontend-rn-11x:build
