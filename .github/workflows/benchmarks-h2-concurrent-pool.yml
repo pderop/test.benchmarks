@@ -73,7 +73,7 @@ jobs:
           fetch-depth: 0
 
       - name: Compile Reactor Pool PR
-        run: ./gradlew publishToMavenLocal
+        run: ./gradlew -x javadoc publishToMavenLocal
         working-directory: ./reactor-pool-repo
 
       - name: Compile Reactor Netty PR
