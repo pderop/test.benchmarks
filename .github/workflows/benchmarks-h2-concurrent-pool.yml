@@ -102,7 +102,7 @@ jobs:
       contents: write
     with:
       appname: benchmark-rn-11x-H2
-      protocol: ${{ matrix.protocol }}
+      protocol: H2
       frontend-app: frontend-rn-h2concurrent-1.0.0
       backend-app: backend-rn-11x-1.0.0
       simulations: ${{ inputs.simulations || 'Remote;TextPlain;Echo;JsonGet;JsonPost;HtmlGet' }}
