@@ -72,6 +72,10 @@ for simulation in $(echo ${SIMULATIONS} | tr ";" "\n"); do
   JOPTS="-DHOST=${SERVER_HOST} -DPORT=${SERVER_PORT} -DDURATION=${DURATION} -DPROTOCOL=${PROTOCOL} -DSTEPS=${STEPS} -DINCREMENT=${INCREMENT}"
   name="$APP_NAME-$simulation"
 
+  echo "Warmup"
+  java ${JOPTS} -DDURATION=20s -jar gatling-*-all.jar "$name" $simulation
+  echo "Warmup done"
+
   # fork gatling, because sometimes, it may hangs after displaying a log like
   # "Coordinated shutdown phase [actor-system-terminate] timed out after 10000 milliseconds"
   # So, fork gatling, wait for "mean requests/sec", and kill gatling
