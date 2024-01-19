@@ -84,7 +84,7 @@ jobs:
         run: ./gradlew frontend-rn-h2concurrent:build
 
       - name: Compile Backend
-        run: ./gradlew frontend-rn-11x:build
+        run: ./gradlew backend-rn-11x:build
 
       - name: Upload frontend
         uses: actions/upload-artifact@v4
@@ -92,6 +92,7 @@ jobs:
           name: frontend-rn-h2concurrent-1.0.0
           path: frontend-rn-h2concurrent/build/libs/frontend-rn-h2concurrent-1.0.0.jar
           retention-days: 1
+          if-no-files-found: error
 
       - name: Upload backend
         uses: actions/upload-artifact@v4
@@ -99,6 +100,7 @@ jobs:
           name: backend-rn-11x-1.0.0
           path: backend-rn-11x/build/libs/backend-rn-11x-1.0.0.jar
           retention-days: 1
+          if-no-files-found: error
 
   run-benchmarks:
     needs: build
