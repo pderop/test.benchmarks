@@ -1,7 +1,7 @@
 ##
-# github actions for reactor-netty 11x benchmarks
+# github actions for Reactor Netty 11x benchmarks
 ##
-name: benchmarks-run
+name: benchmarks-rn-11x
 
 on:
 #  schedule:
@@ -9,15 +9,10 @@ on:
   workflow_dispatch:
     inputs:
       simulations-rn:
-        description: 'Simulations for benchmark-rn app:'
+        description: 'Simulations for Reactor Netty 11x benchmarks:'
         required: false
         type: string
         default: 'Remote;TextPlain;Echo;JsonGet;JsonPost;HtmlGet'
-#      simulations-rs:
-#        description: 'Simulations for benchmark-rs app:'
-#        required: false
-#        type: string
-#        default: 'Remote'
       duration:
         description: 'Test duration (in seconds):'
         required: false
@@ -64,7 +59,7 @@ jobs:
           name: ${{ matrix.app }}-1.0.0
           path: ${{ matrix.app }}/build/libs/${{ matrix.app }}-1.0.0.jar
 
-  run-benchmarks-rn-11x:
+  run-benchmarks:
     needs: build
     strategy:
       max-parallel: 2
@@ -87,60 +82,10 @@ jobs:
         reactor;reactor-netty;main
         reactor;reactor-core;main
 
-  # Reactor Netty 2.0.x based benchmarks
-#  benchmark-rn-20x:
-#    strategy:
-#      max-parallel: 1
-#      matrix:
-#        protocol: [ H1S, H2 ]
-#    needs: [ benchmark-rn-11x ]
-#    uses: ./.github/workflows/_benchmarks.yml
-#    secrets: inherit
-#    permissions:
-#      contents: write
-#    with:
-#      appname: benchmark-rn-20x-${{ matrix.protocol }}
-#      protocol: ${{ matrix.protocol }}
-#      frontend-app: frontend-rn-20x-1.0.0
-#      backend-app: backend-rn-20x-1.0.0
-#      simulations: ${{ inputs.simulations-rn || 'Remote;TextPlain;Echo;JsonGet;JsonPost;HtmlGet' }}
-#      duration: ${{ inputs.duration || '5' }}
-#      alert-threshold: ${{ inputs.alert-threshold || '125%' }}
-#      force-bench: ${{ inputs.force-bench || false }}
-#      dependencies: |
-#        reactor;reactor-netty;netty5
-#        reactor;reactor-core;main
-#        netty;netty;main
-
-  # RSocket based benchmarks (gatling/HTTP11 -> gateway HTTP11/Rsocket-TCP -> backend RSocket-TCP)
-#  benchmark-rs:
-#    strategy:
-#      max-parallel: 1
-#      matrix:
-#        protocol: [ H1 ]
-##    needs: [ benchmark-rn-11x, benchmark-rn-20x ]
-#    needs: [ benchmark-rn-11x ]
-#    uses: ./.github/workflows/_benchmarks.yml
-#    secrets: inherit
-#    permissions:
-#      contents: write
-#    with:
-#      appname: benchmark-rs-${{ matrix.protocol }}
-#      protocol: ${{ matrix.protocol }}
-#      frontend-app: frontend-rs-1.0.0
-#      backend-app: backend-rs-1.0.0
-#      simulations: ${{ inputs.simulations-rs || 'Remote' }}
-#      duration: ${{ inputs.duration || '5' }}
-#      alert-threshold: ${{ inputs.alert-threshold || '125%' }}
-#      force-bench: ${{ inputs.force-bench || false }}
-#      dependencies: |
-#        rsocket;rsocket-java;1.1.x
-
   # Once all benchmarks are done, rebuild final shootout board README file
   update-readme:
     uses: ./.github/workflows/_update-readme.yml
-#    needs: [ benchmark-rn-11x, benchmark-rn-20x, benchmark-rs ]
-    needs: [ run-benchmarks-rn-11x ]
+    needs: [ run-benchmarks ]
     secrets: inherit
     permissions:
       contents: write

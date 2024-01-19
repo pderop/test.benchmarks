@@ -1,3 +1,6 @@
+##
+# github actions to manually force GCP full cleanup (destroy VMs, buckets)
+##
 name: cleanup-gcp
 
 on:

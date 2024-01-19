@@ -160,42 +160,6 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
 
-#      - name: Checkout Socks Proxy
-#        uses: actions/checkout@v3
-#        with:
-#          ref: 'main'
-#          repository: netty-contrib/socks-proxy
-#          path: socks-proxy
-#          fetch-depth: 0
-#
-#      - name: Checkout Codec Multipart
-#        uses: actions/checkout@v3
-#        with:
-#          ref: 'main'
-#          repository: netty-contrib/codec-multipart
-#          path: codec-multipart
-#          fetch-depth: 0
-#
-#      - name: Checkout Reactor Netty 5
-#        uses: actions/checkout@v3
-#        with:
-#          ref: 'netty5'
-#          repository: reactor/reactor-netty
-#          path: reactor-netty
-#          fetch-depth: 0
-#
-#      - name: Build socks-proxy
-#        run: ./mvnw install -DskipTests=true "-Dnetty.version=5.0.0.Alpha6-SNAPSHOT"
-#        working-directory: ./socks-proxy
-#
-#      - name: Build codec-multipart
-#        run: ./mvnw install -DskipTests=true "-Dnetty.version=5.0.0.Alpha6-SNAPSHOT"
-#        working-directory: ./codec-multipart
-#
-#      - name: Build Reactor Netty 5
-#        run: ./gradlew publishToMavenLocal
-#        working-directory: ./reactor-netty
-
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
         with:
