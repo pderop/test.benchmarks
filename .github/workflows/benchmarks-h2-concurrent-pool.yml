@@ -109,7 +109,7 @@ jobs:
     permissions:
       contents: write
     with:
-      appname: benchmark-rn-11x-H2
+      appname: benchmark-rn-concurrent-H2
       protocol: H2
       frontend-app: frontend-rn-h2concurrent-1.0.0
       backend-app: backend-rn-11x-1.0.0

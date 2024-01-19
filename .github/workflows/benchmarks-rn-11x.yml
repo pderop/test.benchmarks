@@ -58,6 +58,8 @@ jobs:
         with:
           name: ${{ matrix.app }}-1.0.0
           path: ${{ matrix.app }}/build/libs/${{ matrix.app }}-1.0.0.jar
+          retention-days: 1
+          if-no-files-found: error
 
   run-benchmarks:
     needs: build
