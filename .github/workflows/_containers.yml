@@ -1,0 +1,82 @@
+name: _containers
+
+on:
+  workflow_call:
+    inputs:
+      server-image:
+        type: string
+        description: 'The name of the server image to build:'
+        default: ''
+        required: true
+      gatling-image:
+        type: string
+        description: 'The name of the gatling image to build:'
+        default: ''
+        required: false
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT }}
+  GATLING_IMAGE: ${{ inputs.gatling-image }}
+  SERVER_IMAGE: ${{ inputs.server-image }}
+  GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
+
+jobs:
+  setup-containers:
+    name: Create images for VMs
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: 'main'
+        fetch-depth: 0
+
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '19'
+        distribution: 'temurin'
+
+    # GCP authentication via credentials json (TODO replace by OpenId)
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+    # Setup gcloud CLI
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+
+    # Configure Docker to use the gcloud command-line tool as a credential helper for authentication
+    - run: |-
+        gcloud --quiet auth configure-docker
+
+    # Purge old containers
+    - name: Purge old images
+      run: |-
+        gcloud container images list-tags gcr.io/$PROJECT_ID/$SERVER_IMAGE \
+          --format="get(digest)" | \
+          awk -v image_path="gcr.io/$PROJECT_ID/$SERVER_IMAGE@" '{print image_path $1}' | \
+          xargs -r gcloud container images delete --force-delete-tags --quiet
+        gcloud container images list-tags gcr.io/$PROJECT_ID/$GATLING_IMAGE \
+          --format="get(digest)" | \
+          awk -v image_path="gcr.io/$PROJECT_ID/$GATLING_IMAGE@" '{print image_path $1}' | \
+          xargs -r gcloud container images delete --force-delete-tags --quiet
+
+    # Build the Docker images
+    - name: Build containers
+      run: |-
+        if [ -n $GATLING_IMAGE ]; then
+          ./gradlew gatling:build
+          cp gatling/build/libs/gatling*-all.jar /tmp
+          cp /tmp/gatling-*-all.jar containers/gatling/
+          docker build --tag "gcr.io/$PROJECT_ID/$GATLING_IMAGE:latest" containers/gatling
+        fi
+        docker build --tag "gcr.io/$PROJECT_ID/$SERVER_IMAGE:latest" containers/server
+
+    # Push the Docker image to Google Container Registry
+    - name: Push containers to GCR
+      run: |-
+        docker push "gcr.io/$PROJECT_ID/$SERVER_IMAGE:latest"
+        docker push "gcr.io/$PROJECT_ID/$GATLING_IMAGE:latest"

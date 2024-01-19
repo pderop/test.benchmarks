@@ -1,0 +1,13 @@
+# Continuous Web Benchmarks
+
+This project allows to continuously deploy and run some Google Cloud Platform VMs every night in order to run Gatling injections against some Reactor-Netty and RSocket based applications.
+Performance regression are detected using `github-action-benchmark`GH action that allows to monitor benchmarks for possible performance regressions.
+Benchmarks results are stored in GH pages.
+
+# Google Cloud Platform setup:
+
+TODO
+
+# Sample Usage
+
+TODO

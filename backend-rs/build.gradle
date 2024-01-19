@@ -1,0 +1,23 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+apply plugin: 'application'
+mainClassName = 'org.example.ServerApplication'
+group 'com.example'
+version '1.0.0'
+
+dependencies {
+    implementation "io.rsocket:rsocket-core:1.1.4-SNAPSHOT"
+    implementation "io.rsocket:rsocket-transport-netty:1.1.4-SNAPSHOT"
+    implementation "ch.qos.logback:logback-classic:${reactorNetty4LogbackVersion}"
+}
+
+shadowJar {
+    archiveFileName = "${project.name}-${project.version}.jar"
+}
+
+project.tasks.distTar.dependsOn(shadowJar)
+project.tasks.distZip.dependsOn(shadowJar)
+project.tasks.startScripts.dependsOn(shadowJar)
+project.tasks.startShadowScripts.dependsOn(':backend-rs:jar')

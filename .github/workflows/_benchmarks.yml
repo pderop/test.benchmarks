@@ -1,0 +1,382 @@
+name: _benchmarks
+
+on:
+  workflow_call:
+    inputs:
+      appname:
+        type: string
+        description: 'The name of the application:'
+        default: ''
+        required: true
+      frontend-app:
+        type: string
+        description: 'The application jar to deploy on the frontent vm:'
+        default: ''
+        required: true
+      backend-app:
+        type: string
+        description: 'The application jar to deploy on the backend vm:'
+        default: ''
+        required: false
+      protocol:
+        type: string
+        description: 'The protocol used (H1 or H2):'
+        default: ''
+        required: true
+      simulations:
+        description: 'List of simulation applications:'
+        required: true
+        type: string
+        default: ''
+      dependencies:
+        description: 'List of gh project dependencies to track:'
+        required: true
+        type: string
+        default: ''
+      duration:
+        description: 'Test duration (in minutes):'
+        required: false
+        type: string
+        default: '1'
+      alert-threshold:
+        description: 'Alert threshold like "150%". Percentage indicating how worse the current benchmark result is, e.g: 150% means that an alert happens when current benchmark result is 1.5x worse than previous:'
+        required: false
+        type: string
+        default: '125%'
+      force-bench:
+        type: boolean
+        description: Forces benchmark even if there's no changes
+        default: false
+        required: false
+      gatling-ramp-steps:
+        type: string
+        description: 'Gatling steps'
+        default: '10'
+        required: false
+      gatling-ramp-increment:
+        type: string
+        description: 'Gatling increment'
+        default: '100'
+        required: false
+    outputs:
+      changed:
+        description: "Some commits have been done since last benchmark"
+        value: ${{ jobs.init-benchmark.outputs.changed }}
+
+env:
+  SCRIPTS_DIR: ./main-repo/.github/scripts
+  APP_NAME: ${{ inputs.appname }}
+
+jobs:
+
+  init-benchmark:
+    name: Initialize benchmark
+    runs-on: ubuntu-latest
+    env:
+      DEPENDENCIES: ${{ inputs.dependencies }}
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.check_updated.outputs.CHANGED }}
+      commits: ${{ steps.check_updated.outputs.COMMITS }}
+      commits_diff: ${{ steps.check_updated.outputs.COMMITS_DIFF }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          path: main-repo
+          fetch-depth: 0
+
+      - name: Check for updates
+        id: check_updated
+        run: |-
+          . ${SCRIPTS_DIR}/libs.sh
+          git checkout gh-pages
+          check_for_new_commits "$DEPENDENCIES" bench/$APP_NAME/Trends/.history $GITHUB_OUTPUT
+
+  run-benchmark:
+    name: Deploy benchmark
+    needs: init-benchmark
+    if: needs.init-benchmark.outputs.changed == 'true' || github.event.inputs.force-bench == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      GH_TOKEN: ${{ github.token }}
+      PROJECT_ID: ${{ secrets.GCP_PROJECT }}
+      FRONTEND_IMAGE: 'benchmark-server-image'
+      BACKEND_IMAGE: 'benchmark-server-image'
+      GATLING_IMAGE: 'benchmark-gatling-image'
+      FRONTEND_APP: ${{ inputs.frontend-app }}
+      BACKEND_APP: ${{ inputs.backend-app }}
+      PROTOCOL: ${{ inputs.protocol }}
+      BUCKET: ${{ vars.BUCKET }}
+      ZONE: ${{ vars.ZONE }}
+      MACHINE_TYPE: ${{ vars.MACHINE_TYPE }}
+      SIMULATIONS: ${{ inputs.simulations }}
+      DURATION: ${{ inputs.duration }}
+      ALERT_THRESHOLD: ${{ inputs.alert-threshold }}
+      GATLING_RAMP_STEPS: ${{ inputs.gatling-ramp-steps }}
+      GATLING_RAMP_INCREMENT: ${{ inputs.gatling-ramp-increment }}
+
+    steps:
+      - name: Setup env
+        run: |-
+          echo "GATLING_VM=$(echo gatling-$APP_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "FRONTEND_VM=$(echo frontend-$APP_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "FRONTEND_RENAMED_APP=frontend-$APP_NAME" >> $GITHUB_ENV
+          echo "BACKEND_RENAMED_APP=backend-$APP_NAME" >> $GITHUB_ENV
+          if [ -n $BACKEND_APP ]; then echo "BACKEND_VM=$(echo backend-$APP_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV; fi
+
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          path: main-repo
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '19'
+          distribution: 'temurin'
+
+      # GCP authentication via credentials json (TODO replace by OpenId)
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      # Setup gcloud CLI
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+#      - name: Checkout Socks Proxy
+#        uses: actions/checkout@v3
+#        with:
+#          ref: 'main'
+#          repository: netty-contrib/socks-proxy
+#          path: socks-proxy
+#          fetch-depth: 0
+#
+#      - name: Checkout Codec Multipart
+#        uses: actions/checkout@v3
+#        with:
+#          ref: 'main'
+#          repository: netty-contrib/codec-multipart
+#          path: codec-multipart
+#          fetch-depth: 0
+#
+#      - name: Checkout Reactor Netty 5
+#        uses: actions/checkout@v3
+#        with:
+#          ref: 'netty5'
+#          repository: reactor/reactor-netty
+#          path: reactor-netty
+#          fetch-depth: 0
+#
+#      - name: Build socks-proxy
+#        run: ./mvnw install -DskipTests=true "-Dnetty.version=5.0.0.Alpha6-SNAPSHOT"
+#        working-directory: ./socks-proxy
+#
+#      - name: Build codec-multipart
+#        run: ./mvnw install -DskipTests=true "-Dnetty.version=5.0.0.Alpha6-SNAPSHOT"
+#        working-directory: ./codec-multipart
+#
+#      - name: Build Reactor Netty 5
+#        run: ./gradlew publishToMavenLocal
+#        working-directory: ./reactor-netty
+
+      - name: Compile benchmark projects
+        shell: bash
+        run: |-
+          env|grep "_VM"
+          ./gradlew build
+
+      # Create frontend/backend VMs
+      - name: Create frontend/backend VMs
+        run: |-
+          jarfile=$(find . -name "$FRONTEND_APP.jar") 
+          gsutil cp $jarfile gs://$BUCKET/apps/$FRONTEND_RENAMED_APP.jar;
+          if [ -n $BACKEND_APP ]; then
+            echo "Creating backend vm ..."
+            jarfile=$(find . -name "$BACKEND_APP.jar") 
+            gsutil cp $jarfile gs://$BUCKET/apps/$BACKEND_RENAMED_APP.jar;
+            gcloud compute instances create-with-container $BACKEND_VM \
+              --machine-type=$MACHINE_TYPE \
+              --scopes="userinfo-email,storage-rw" \
+              --zone=$ZONE \
+              --tags=benchmark-tag \
+              --network=default \
+              --container-image=gcr.io/$PROJECT_ID/$BACKEND_IMAGE:latest \
+              --container-restart-policy=never \
+              --container-env=PROJECT_ID=$PROJECT_ID,BUCKET=$BUCKET,APP=$BACKEND_RENAMED_APP,PROTOCOL=$PROTOCOL | \
+              sed -E 's/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/xxx.xxx.xxx.xxx/g'
+              INTERNAL_IP=`gcloud compute instances list --filter="name=$BACKEND_VM" --format='value(networkInterfaces[0].networkIP)'`
+          fi
+          echo "Creating frontend vm ..."
+          gcloud compute instances create-with-container $FRONTEND_VM \
+            --machine-type=$MACHINE_TYPE \
+            --scopes="userinfo-email,storage-rw" \
+            --zone=$ZONE \
+            --tags=benchmark-tag \
+            --network=default \
+            --container-image=gcr.io/$PROJECT_ID/$FRONTEND_IMAGE:latest \
+            --container-restart-policy=never \
+            --container-env=PROJECT_ID=$PROJECT_ID,BUCKET=$BUCKET,APP=$FRONTEND_RENAMED_APP,PROTOCOL=$PROTOCOL,BACKEND_HOST=${INTERNAL_IP},BACKEND_PORT=8090 | \
+          sed -E 's/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/xxx.xxx.xxx.xxx/g'            
+
+      # Create Gatling VM which will start benchmark
+      - name: Create Gatling VM
+        run: |-
+          INTERNAL_IP=`gcloud compute instances list --filter="name=$FRONTEND_VM" --format='value(networkInterfaces[0].networkIP)'`
+          
+          gcloud compute instances create-with-container $GATLING_VM \
+            --boot-disk-size=16GB \
+            --machine-type=$MACHINE_TYPE  \
+            --scopes="userinfo-email,storage-rw" \
+            --zone=$ZONE \
+            --tags=benchmark-tag \
+            --network=default \
+            --container-image=gcr.io/$PROJECT_ID/$GATLING_IMAGE:latest \
+            --container-restart-policy=never \
+            --container-env="BUCKET=$BUCKET,SERVER_HOST=${INTERNAL_IP},SERVER_PORT=8080,SIMULATIONS=$SIMULATIONS,DURATION=$DURATION,APP_NAME=$APP_NAME,PROTOCOL=$PROTOCOL,STEPS=$GATLING_RAMP_STEPS,INCREMENT=$GATLING_RAMP_INCREMENT" | \
+          sed -E 's/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/xxx.xxx.xxx.xxx/g'
+
+      - name: Execute Gatling simulations
+        run: |-
+          ${SCRIPTS_DIR}/wait-for-container-started.sh $GATLING_VM $ZONE gcr.io/$GCP_PROJECT/$GATLING_IMAGE:latest
+          container_id=$(gcloud compute ssh $GATLING_VM --zone=$ZONE --project=$GCP_PROJECT --command "docker ps -a" | \
+            tr '\r' '\n' | grep $GATLING_VM | cut -d ' ' -f 1)
+          gcloud compute ssh $GATLING_VM --zone=$ZONE --project=$GCP_PROJECT --command "docker logs -f $container_id"
+          GET_STATUS_COMMAND="docker inspect --format=\"{{.State.ExitCode}}\" $container_id"
+          exit_code=$(gcloud compute ssh $GATLING_VM --zone=$ZONE --project=$GCP_PROJECT --command "$GET_STATUS_COMMAND")
+          if [ "$exit_code" != "0" ]; then
+            echo "Gatling container exited abnormally: $exit_code"
+            exit 1
+          fi
+
+      - name: Download test result
+        run: |-
+          gsutil cp gs://$BUCKET/results/bench-$APP_NAME.tgz .
+          tar zxf bench-$APP_NAME.tgz gh-benchmark.json
+
+      - name: Generate trends report
+        uses: benchmark-action/github-action-benchmark@v1.15.0
+        with:
+          name: Trends for ${{ env.APP_NAME }}
+          tool: 'customBiggerIsBetter'
+          output-file-path: ./gh-benchmark.json
+          benchmark-data-dir-path: bench/${{ env.APP_NAME }}/Trends
+          max-items-in-chart: 100
+          auto-push: false
+          alert-threshold: ${{ env.ALERT_THRESHOLD }}
+          fail-threshold: ${{ env.ALERT_THRESHOLD }}
+          fail-on-alert: true
+          comment-on-alert: false
+          github-token: ${{ env.GH_TOKEN }}
+
+      - name: Prepare results
+        run: |-
+          . ${SCRIPTS_DIR}/libs.sh
+          git checkout gh-pages
+          tar zxf bench-$APP_NAME.tgz
+          rm -f bench.tgz
+          update_benchmark_history bench/$APP_NAME/Trends/.history "${{ needs.init-benchmark.outputs.commits }}" 
+          transform_benchmark_json_data bench/$APP_NAME/Trends/data.js "Trends for $APP_NAME" $JOB_URL $GITHUB_RUN_ID "${{ needs.init-benchmark.outputs.commits_diff }}" 
+          cp -f ${SCRIPTS_DIR}/benchmark-index-template.html bench/$APP_NAME/Trends/index.html
+
+      - name: Upload results
+        uses: actions/upload-artifact@v3
+        with:
+          name: results-${{ env.APP_NAME }}
+          path: bench/${{ env.APP_NAME }}
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Cleanup
+        if: always()
+        run: |-
+          set +e
+          echo "Deleting Gatling VM"
+          gcloud compute instances delete $GATLING_VM --quiet --zone $ZONE | echo
+          echo "Frontend logs:"
+          container_id=$(gcloud compute ssh $FRONTEND_VM --zone=$ZONE --project=$GCP_PROJECT --command "docker ps -a" | \
+            tr '\r' '\n' | grep $FRONTEND_VM | cut -d ' ' -f 1)
+          gcloud compute ssh $FRONTEND_VM --zone=$ZONE --project=$GCP_PROJECT --command "docker logs $container_id"
+          echo "Deleting frontend VM"
+          gcloud compute instances delete $FRONTEND_VM --quiet --zone $ZONE | echo
+          if [ -n $BACKEND_APP ]; then
+            echo "Backend logs:"
+            container_id=$(gcloud compute ssh $BACKEND_VM --zone=$ZONE --project=$GCP_PROJECT --command "docker ps -a" | \
+              tr '\r' '\n' | grep $BACKEND_VM | cut -d ' ' -f 1)
+            gcloud compute ssh $BACKEND_VM --zone=$ZONE --project=$GCP_PROJECT --command "docker logs $container_id"
+            echo "Deleting backend VM"
+            gcloud compute instances delete $BACKEND_VM --quiet --zone $ZONE | echo
+          fi
+          echo "Deleting files from bucket"
+          gsutil rm -f gs://$BUCKET/apps/$FRONTEND_RENAMED_APP.jar | echo
+          if [ -n $BACKEND_APP ]; then
+            gsutil rm -f gs://$BUCKET/apps/$BACKEND_RENAMED_APP.jar | echo
+          fi
+          gsutil rm -f gs://$BUCKET/results/bench-$APP_NAME.tgz | echo
+
+  commit-results:
+    name: Store results in gh-pages
+    runs-on: ubuntu-latest
+    needs: [init-benchmark, run-benchmark]
+    if: needs.init-benchmark.outputs.changed == 'true' || github.event.inputs.force-bench == 'true'
+    env:
+      CI_COMMIT_MESSAGE: Benchmarks
+      CI_COMMIT_AUTHOR: ${{ github.event.repository.name }} Benchmarks
+      CI_COMMIT_EMAIL: $GITHUB_TRIGGERING_ACTOR@users.noreply.github.com
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'gh-pages'
+
+      - name: Download results
+        uses: actions/download-artifact@v3
+        with:
+          name: results-${{ env.APP_NAME }}
+          path: tmp
+
+      - name: Commit results
+        id: commit-results
+        run: |-
+          ls tmp
+          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+          git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
+          mkdir -p bench/${{ env.APP_NAME }}
+          \cp -fR tmp/* bench/${{ env.APP_NAME }}/.
+          git add bench
+          git commit --allow-empty -m "${{ env.CI_COMMIT_MESSAGE }}"
+          set +e
+          for ((i = 1; i <= 10; i++)); do
+            if ! $(git push origin gh-pages:gh-pages); then
+              echo "push failed, retrying in 3 seconds."
+              set -e
+              git pull --rebase
+              set +e
+              sleep 3
+            else
+              break
+            fi
+            if [ "$i" -eq 9 ]; then
+              echo "Could not push"
+              set -e
+              exit 1
+            fi
+          done

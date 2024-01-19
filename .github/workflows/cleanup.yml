@@ -1,0 +1,9 @@
+name: Cleanup
+
+on:
+  workflow_dispatch:
+
+jobs:
+  benchmark-cleanup:
+    uses: ./.github/workflows/_cleanup.yml
+    secrets: inherit

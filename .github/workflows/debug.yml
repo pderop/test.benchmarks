@@ -1,0 +1,13 @@
+name: Debug
+
+on:
+  workflow_dispatch:
+
+jobs:
+  benchmark-deploy-debug:
+    uses: ./.github/workflows/_debug.yml
+    secrets: inherit
+    with:
+      client-vm: benchmark-gatling
+      frontend-vm: benchmark-frontend
+      backend-vm: benchmark-backend

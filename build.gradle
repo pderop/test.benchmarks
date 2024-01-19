@@ -1,0 +1,45 @@
+plugins {
+    id 'application'
+    id 'java'
+    id 'com.google.osdetector' version '1.7.3'
+}
+
+group 'org.example'
+version '1.1.x'
+
+sourceCompatibility = 17
+targetCompatibility = 17
+
+ext {
+    os_suffix = ""
+    if (osdetector.classifier in ['linux-x86_64'] || ['osx-x86_64'] || ['osx-aarch_64'] || ['windows-x86_64']) {
+        os_suffix = ":" + osdetector.classifier
+    }
+
+    reactorNettyVersion11x='1.1.16-SNAPSHOT'
+    reactorNettyVersion20x='2.0.0-SNAPSHOT'
+    netty4BouncycastleVersion = '1.69'
+    netty5BouncycastleVersion = '1.70'
+    reactorNetty4LogbackVersion = '1.2.13'
+    reactorNetty5LogbackVersion = '1.4.6'
+    micrometerVersion = '1.10.13'
+    contextPropagationVersion = '1.0.6'
+}
+
+subprojects {
+    version='1.1.x'
+
+    apply plugin: 'java'
+    apply plugin: 'com.google.osdetector'
+
+    repositories {
+        mavenLocal()
+        maven { url 'https://repo.spring.io/snapshot' }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        mavenCentral()
+    }
+
+    dependencies {
+        implementation "com.fasterxml.jackson.core:jackson-databind:2.14.1"
+    }
+}

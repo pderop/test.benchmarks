@@ -1,0 +1,26 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+apply plugin: 'application'
+mainClassName = 'org.example.ServerApplication'
+group 'com.example'
+version '1.0.0'
+
+dependencies {
+    implementation "io.projectreactor.netty:reactor-netty5-core:${reactorNettyVersion20x}"
+    implementation "io.projectreactor.netty:reactor-netty5-http:${reactorNettyVersion20x}"
+    implementation "ch.qos.logback:logback-classic:${reactorNetty5LogbackVersion}"
+    implementation "org.bouncycastle:bcpkix-jdk15on:${netty5BouncycastleVersion}"
+}
+
+shadowJar {
+    archiveFileName = "${project.name}-${project.version}.jar"
+    // Merge service provider files
+    mergeServiceFiles()
+}
+
+project.tasks.distTar.dependsOn(shadowJar)
+project.tasks.distZip.dependsOn(shadowJar)
+project.tasks.startScripts.dependsOn(shadowJar)
+project.tasks.startShadowScripts.dependsOn(':frontend-rn-20x:jar')

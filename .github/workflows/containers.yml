@@ -1,0 +1,12 @@
+name: Containers
+
+on:
+  workflow_dispatch:
+
+jobs:
+  container-deploy:
+    uses: ./.github/workflows/_containers.yml
+    secrets: inherit
+    with:
+      gatling-image: benchmark-gatling-image
+      server-image: benchmark-server-image

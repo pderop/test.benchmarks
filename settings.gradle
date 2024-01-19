@@ -1,0 +1,8 @@
+include 'gatling'
+include 'frontend-rn-11x'
+include 'backend-rn-11x'
+//include 'frontend-rn-20x'
+//include 'backend-rn-20x'
+//include 'backend-rs'
+//include 'frontend-rs'
+

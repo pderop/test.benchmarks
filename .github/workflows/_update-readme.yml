@@ -1,0 +1,45 @@
+name: _update-readme
+
+on:
+  workflow_call:
+
+jobs:
+
+  update-readme:
+    name: Update README in gh pages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      CI_COMMIT_MESSAGE: Update README
+      CI_COMMIT_AUTHOR: ${{ github.event.repository.name }} Benchmarks
+      CI_COMMIT_EMAIL: $GITHUB_TRIGGERING_ACTOR@users.noreply.github.com
+      SCRIPTS_DIR: ./main-repo/.github/scripts
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: 'gh-pages'
+          fetch-depth: 0
+
+      - uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          path: main-repo
+
+      - name: Update README and commit
+        run: |-
+          . ${SCRIPTS_DIR}/libs.sh
+          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+          git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
+          last_commit_date=$(git log -1 --format=%ct)
+          last_readme_commit_date=0
+          if [ -f README.md ]; then
+            last_readme_commit_date=$(git log -1 --format=%ct README.md)
+          fi
+          if [ $last_commit_date -gt $last_readme_commit_date ]; then
+            build-results-readme bench > README.md
+            git add README.md
+            git commit --allow-empty -m "${{ env.CI_COMMIT_MESSAGE }}"
+            git push origin gh-pages:gh-pages
+          fi

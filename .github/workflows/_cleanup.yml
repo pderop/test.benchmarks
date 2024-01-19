@@ -1,0 +1,47 @@
+name: _cleanup
+
+on:
+  workflow_call:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT }}
+  BUCKET: ${{ vars.BUCKET }}
+  ZONE: ${{ vars.ZONE }}
+
+jobs:
+  gcp-cleanup:
+    name: Cleanup GCP instances and resources
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '8'
+        distribution: 'temurin'
+
+    # gcp authentication via credentials json
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+    # Setup gcloud CLI
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+
+    # Cleanup GCP instances and resources
+    - name: Remove GCP instances and resources
+      if: always()
+      run: |-
+        set -e
+        for instance in $(gcloud compute instances list --project $PROJECT_ID --format="table(name)" | tail -n +2 | awk '{print $1}'); do
+          echo "Removing instance $instance"
+          gcloud compute instances delete $instance --quiet --zone $ZONE
+        done
+        gsutil rm -rf gs://$BUCKET/apps/* | echo
+        gsutil rm -rf gs://$BUCKET/client/* | echo
+        gsutil rm -rf gs://$BUCKET/results/* | echo

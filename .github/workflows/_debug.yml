@@ -1,0 +1,99 @@
+name: _debug
+
+on:
+  workflow_call:
+    inputs:
+      client-vm:
+        type: string
+        description: 'The client vm name:'
+        default: ''
+        required: true
+      frontend-vm:
+        type: string
+        description: 'The frontend vm name:'
+        default: ''
+        required: true
+      backend-vm:
+        type: string
+        description: 'The backend vm name:'
+        default: ''
+        required: false
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT }}
+  FRONTEND_VM: ${{ inputs.frontend-vm }}
+  BACKEND_VM: ${{ inputs.backend-vm }}
+  CLIENT_VM: ${{ inputs.client-vm }}
+  BUCKET: ${{ vars.BUCKET }}
+  ZONE: ${{ vars.ZONE }}
+  MACHINE_TYPE: ${{ vars.MACHINE_TYPE }}
+  IMAGE_FAMILY: ${{ vars.IMAGE_FAMILY }}
+  IMAGE_PROJECT: ${{ vars.IMAGE_PROJECT }}
+
+jobs:
+  setup-debug:
+    name: Setup Debug VMs
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # GCP authentication via credentials json
+    - id: 'auth'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+    # Setup gcloud CLI
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+
+    # Create the server VM (it will move all jars from bucket/server into the VM)
+    - name: Create frontend/backend VMs
+      run: |-
+        gcloud compute instances create $FRONTEND_VM \
+          --machine-type=$MACHINE_TYPE \
+          --scopes="userinfo-email,storage-rw" \
+          --zone=$ZONE \
+          --tags=benchmark-tag \
+          --network=default \
+          --image-family=$IMAGE_FAMILY \
+          --image-project=$IMAGE_PROJECT \
+          --metadata-from-file startup-script=vm/server/startup.sh \
+          --metadata BUCKET=$BUCKET,PROJECT_ID=$PROJECT_ID | \
+        sed -E 's/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/xxx.xxx.xxx.xxx/g'
+        .github/scripts/wait-for-vm-started.sh $FRONTEND_VM $ZONE 300
+        if [ -n $BACKEND_VM ]; then
+          gcloud compute instances create $BACKEND_VM \
+            --machine-type=$MACHINE_TYPE \
+            --scopes="userinfo-email,storage-rw" \
+            --zone=$ZONE \
+            --tags=benchmark-tag \
+            --network=default \
+            --image-family=$IMAGE_FAMILY \
+            --image-project=$IMAGE_PROJECT \
+            --metadata-from-file startup-script=vm/server/startup.sh \
+            --metadata BUCKET=$BUCKET,PROJECT_ID=$PROJECT_ID | \
+          sed -E 's/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/xxx.xxx.xxx.xxx/g'
+          .github/scripts/wait-for-vm-started.sh $BACKEND_VM $ZONE 300
+        fi
+
+    # Create client VM
+    - name: Create Gatling VM
+      run: |-
+        set +E
+        INTERNAL_IP=`gcloud compute instances list --filter="name=$FRONTEND_VM" --format='value(networkInterfaces[0].networkIP)'`
+        gcloud compute instances create $CLIENT_VM \
+          --boot-disk-size=16GB \
+          --machine-type=$MACHINE_TYPE \
+          --scopes="userinfo-email,storage-rw" \
+          --zone=$ZONE \
+          --tags=benchmark-tag \
+          --network=default \
+          --image-family=$IMAGE_FAMILY \
+          --image-project=$IMAGE_PROJECT \
+          --metadata-from-file startup-script=vm/client/startup.sh \
+          --metadata BUCKET=$BUCKET,PROJECT_ID=$PROJECT_ID,INTERNAL_IP=$INTERNAL_IP | \
+        sed -E 's/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/xxx.xxx.xxx.xxx/g'
+        .github/scripts/wait-for-vm-started.sh $CLIENT_VM $ZONE 300
