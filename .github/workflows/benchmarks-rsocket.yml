@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        app: [frontend, backend]
+        app: [frontend-rs, backend-rs]
 
     steps:
       - name: Checkout code
@@ -68,8 +68,8 @@ jobs:
     with:
       appname: benchmark-rs
       protocol: H1
-      frontend-app: frontend-1.0.0
-      backend-app: backend-1.0.0
+      frontend-app: frontend-rs-1.0.0
+      backend-app: backend-rs-1.0.0
       simulations: ${{ inputs.simulations || 'Remote' }}
       duration: ${{ inputs.duration || '60' }}
       alert-threshold: ${{ inputs.alert-threshold || '125%' }}
