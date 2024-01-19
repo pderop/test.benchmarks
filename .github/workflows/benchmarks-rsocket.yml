@@ -40,7 +40,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          ref: 'rsocket'
+          ref: 'main'
           fetch-depth: 0
 
       - name: Set up JDK
