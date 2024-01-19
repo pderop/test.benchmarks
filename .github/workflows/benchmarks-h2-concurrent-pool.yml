@@ -81,7 +81,7 @@ jobs:
         run: |-
           OLD_GITHUB_ACTION=$GITHUB_ACTION
           unset GITHUB_ACTION
-          ./gradlew publishToMavenLocal
+          ./gradlew -x javadoc -x generateObservabilityDocs publishToMavenLocal
           export GITHUB_ACTION=$OLD_GITHUB_ACTION
 
       - name: Compile Frontend
