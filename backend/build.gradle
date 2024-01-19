@@ -11,7 +11,6 @@ dependencies {
     implementation "io.rsocket:rsocket-core:1.1.4-SNAPSHOT"
     implementation "io.rsocket:rsocket-transport-netty:1.1.4-SNAPSHOT"
     implementation "ch.qos.logback:logback-classic:${reactorNetty4LogbackVersion}"
-    implementation "org.bouncycastle:bcpkix-jdk15on:${netty4BouncycastleVersion}"
 }
 
 shadowJar {
@@ -21,4 +20,4 @@ shadowJar {
 project.tasks.distTar.dependsOn(shadowJar)
 project.tasks.distZip.dependsOn(shadowJar)
 project.tasks.startScripts.dependsOn(shadowJar)
-project.tasks.startShadowScripts.dependsOn(':frontend-rs:jar')
+project.tasks.startShadowScripts.dependsOn(':backend:jar')

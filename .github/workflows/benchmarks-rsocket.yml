@@ -1,0 +1,86 @@
+##
+# github actions for reactor-netty 11x benchmarks
+##
+name: benchmarks-rsocket
+
+on:
+#  schedule:
+#    - cron: '5 0 * * *'
+  workflow_dispatch:
+    inputs:
+      simulations-rs:
+        description: 'Simulations for benchmark-rs app:'
+        required: false
+        type: string
+        default: 'Remote'
+      duration:
+        description: 'Test duration (in seconds):'
+        required: false
+        type: string
+        default: '60'
+      alert-threshold:
+        description: 'Alert threshold like "150%". Percentage indicating how worse the current benchmark result is, e.g: 150% means that an alert happens when current benchmark result is 1.5x worse than previous:'
+        required: false
+        type: string
+        default: '125%'
+      force-bench:
+        type: boolean
+        description: Forces benchmark even if there's no changes
+        default: true
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+        matrix:
+          app: [frontend, backend]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '19'
+          distribution: 'temurin'
+
+      - name: Compile
+        run: |-
+          ./gradlew ${{ matrix.app }}:build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.app }}-1.0.0
+          path: ${{ matrix.app }}/build/libs/${{ matrix.app }}-1.0.0.jar
+
+  run-benchmarks-rsocket:
+    needs: build
+    uses: ./.github/workflows/_benchmarks.yml
+    secrets: inherit
+    permissions:
+      contents: write
+    with:
+      appname: benchmark-rs
+      protocol: H1
+      frontend-app: frontend-1.0.0
+      backend-app: backend-1.0.0
+      simulations: ${{ inputs.simulations-rs || 'Remote' }}
+      duration: ${{ inputs.duration || '60' }}
+      alert-threshold: ${{ inputs.alert-threshold || '125%' }}
+      force-bench: ${{ inputs.force-bench || false }}
+      dependencies: |
+        rsocket;rsocket-java;1.1.x
+
+  # Once all benchmarks are done, rebuild final shootout board README file
+  update-readme:
+    uses: ./.github/workflows/_update-readme.yml
+    needs: [ run-benchmarks-rsocket ]
+    secrets: inherit
+    permissions:
+      contents: write

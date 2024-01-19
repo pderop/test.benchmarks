@@ -31,6 +31,7 @@ public class ServerApplication {
     public static void main(String[] args) {
         System.out.println("Server starting");
         configure(HttpServer.create().host(HOST).port(PORT))
+                .protocol(HttpProtocol.HTTP11)
                 .route(RouterFunctionConfig.routesBuilder())
                 .doOnBound(server -> System.out.println("Server is bound on " + server.address()))
                 .bindNow()
