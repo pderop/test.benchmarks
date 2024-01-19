@@ -1,7 +1,7 @@
 ##
 # github actions for reactor-netty 11x benchmarks
 ##
-name: Reactor Netty Benchmarks
+name: benchmarks-reactor-netty-11x
 
 on:
 #  schedule:
@@ -67,7 +67,7 @@ jobs:
   run-benchmarks-rn-11x:
     needs: build
     strategy:
-      max-parallel: 1
+      max-parallel: 2
       matrix:
         protocol: [ H1S, H2 ]
     uses: ./.github/workflows/_benchmarks.yml

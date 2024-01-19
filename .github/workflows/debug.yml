@@ -1,4 +1,4 @@
-name: Debug
+name: deploy-vm
 
 on:
   workflow_dispatch:
