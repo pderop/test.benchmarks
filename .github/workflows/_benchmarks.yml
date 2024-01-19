@@ -199,14 +199,14 @@ jobs:
       - name: Download frontend artifact
         uses: actions/download-artifact@v4
         with:
-          name: $FRONTEND_APP
+          name: ${{ env.FRONTEND_APP }}
           path: artifacts
 
       - name: Download backend artifact
         if: ${{ env.FRONTEND_APP != '' }}
         uses: actions/download-artifact@v4
         with:
-          name: $BACKEND_APP
+          name: ${{ env.BACKEND_APP }}
           path: artifacts
 
       # Create frontend/backend VMs
