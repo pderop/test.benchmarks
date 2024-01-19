@@ -1,4 +1,4 @@
-name: _cleanup
+name: _cleanup-gcp
 
 on:
   workflow_call:

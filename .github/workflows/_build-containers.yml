@@ -1,4 +1,4 @@
-name: _containers
+name: _build-containers
 
 on:
   workflow_call:

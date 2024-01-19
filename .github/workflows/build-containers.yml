@@ -8,7 +8,7 @@ on:
 
 jobs:
   container-deploy:
-    uses: ./.github/workflows/_containers.yml
+    uses: ./.github/workflows/_build-containers.yml
     secrets: inherit
     with:
       gatling-image: benchmark-gatling-image

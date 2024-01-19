@@ -1,4 +1,4 @@
-name: _debug
+name: _deploy-vm
 
 on:
   workflow_call:

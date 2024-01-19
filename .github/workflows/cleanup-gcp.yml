@@ -8,5 +8,5 @@ on:
 
 jobs:
   benchmark-cleanup:
-    uses: ./.github/workflows/_cleanup.yml
+    uses: ./.github/workflows/_cleanup-gcp.yml
     secrets: inherit
