@@ -95,12 +95,16 @@ jobs:
         with:
           name: frontend-rn-h2concurrent-1.0.0
           path: frontend-rn-h2concurrent/build/libs/frontend-rn-h2concurrent-1.0.0.jar
+          retention-days: 1
+          overwrite: true
 
       - name: Upload backend
         uses: actions/upload-artifact@v4
         with:
           name: backend-rn-11x-1.0.0
           path: backend-rn-11x/build/libs/backend-rn-11x-1.0.0.jar
+          retention-days: 1
+          overwrite: true
 
   run-benchmarks:
     needs: build
