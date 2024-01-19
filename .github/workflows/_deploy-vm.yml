@@ -31,8 +31,8 @@ env:
   IMAGE_PROJECT: ${{ vars.IMAGE_PROJECT }}
 
 jobs:
-  setup-debug:
-    name: Setup Debug VMs
+  setup-vms:
+    name: Setup VMs
     runs-on: ubuntu-latest
 
     steps:
