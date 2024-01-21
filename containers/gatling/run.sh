@@ -74,6 +74,7 @@ for simulation in $(echo ${SIMULATIONS} | tr ";" "\n"); do
 
   echo "Warmup"
   java ${JOPTS} -DDURATION=20s -jar gatling-*-all.jar "$name" $simulation
+  rm -rf test-reports
   echo "Warmup done"
 
   # fork gatling, because sometimes, it may hangs after displaying a log like
