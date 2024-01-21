@@ -20,11 +20,6 @@ cd reactor-pool
 git clone -b workstealing-pool https://github.com/pderop/reactor-netty
 cd reactor-netty;
 ./gradlew -x javadoc -x generateObservabilityDocs publishToMavenLocal
-
-
-
-
-
 ```
 
 # Google Cloud Platform setup:

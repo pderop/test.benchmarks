@@ -19,7 +19,7 @@ on:
         description: 'Simulations for Reactor Netty 11x using http2 concurrent pools:'
         required: false
         type: string
-        default: 'Remote;TextPlain;Echo;JsonGet;JsonPost;HtmlGet'
+        default: 'Remote'
       duration:
         description: 'Test duration (in seconds):'
         required: false
@@ -113,12 +113,13 @@ jobs:
       protocol: H2
       frontend-app: frontend-rn-h2concurrent-1.0.0
       backend-app: backend-rn-11x-1.0.0
-      simulations: ${{ inputs.simulations || 'Remote;TextPlain;Echo;JsonGet;JsonPost;HtmlGet' }}
+      simulations: ${{ inputs.simulations || 'Remote' }}
       duration: ${{ inputs.duration || '60' }}
       alert-threshold: ${{ inputs.alert-threshold || '125%' }}
       force-bench: ${{ inputs.force-bench || false }}
       dependencies: |
-        reactor;reactor-core;main
+        pderop;reactor-pool;workstealing-pool
+        pderop;reactor-netty;workstealing-pool
 
   # Once all benchmarks are done, rebuild final shootout board README file
   update-readme:
