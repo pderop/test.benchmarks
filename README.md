@@ -3,8 +3,8 @@
 
 | Application  | Remote | TextPlain | Trends |
 | ---  | :---: | :---: | :---: |
-| benchmark-rn-11x-H1S | [**29657.75**](bench/benchmark-rn-11x-H1S/Remote/index.html) | [**83245.35**](bench/benchmark-rn-11x-H1S/TextPlain/index.html) | [**result**](bench/benchmark-rn-11x-H1S/Trends/index.html) |
-| benchmark-rn-11x-H2 | [**26833**](bench/benchmark-rn-11x-H2/Remote/index.html) | [**84151.567**](bench/benchmark-rn-11x-H2/TextPlain/index.html) | [**result**](bench/benchmark-rn-11x-H2/Trends/index.html) |
+| benchmark-rn-11x-H1S | [**30622.8**](bench/benchmark-rn-11x-H1S/Remote/index.html) | [**74643.933**](bench/benchmark-rn-11x-H1S/TextPlain/index.html) | [**result**](bench/benchmark-rn-11x-H1S/Trends/index.html) |
+| benchmark-rn-11x-H2 | [**28261.633**](bench/benchmark-rn-11x-H2/Remote/index.html) | [**81214.683**](bench/benchmark-rn-11x-H2/TextPlain/index.html) | [**result**](bench/benchmark-rn-11x-H2/Trends/index.html) |
 | benchmark-rn-concurrent-H2 | [**43250.933**](bench/benchmark-rn-concurrent-H2/Remote/index.html) | [**82919.65**](bench/benchmark-rn-concurrent-H2/TextPlain/index.html) | [**result**](bench/benchmark-rn-concurrent-H2/Trends/index.html) |
 | benchmark-rs | [**86764.417**](bench/benchmark-rs/Remote/index.html) | n/a | [**result**](bench/benchmark-rs/Trends/index.html) |
 
