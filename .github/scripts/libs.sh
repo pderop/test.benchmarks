@@ -196,7 +196,15 @@ build-results-readme() {
     echo -n "| $app"
     for sim in $(echo $simulations | tr ";" "\n"); do
       if [ -f $benchdir/$app/$sim/index.html ]; then
-        echo -n " | [**result**]($benchdir/$app/$sim/index.html)"
+        if [ "$sim" != "Trends" ]; then
+          # extract result from json data
+          result=$(cat $benchdir/$app/Trends/data.js | \
+            sed 's/window.BENCHMARK_DATA = //g' | \
+            jq --arg app "$app" --arg sim "$sim" '.entries."Trends for \($app)" | .[-1].benches[] | select(.name == "\($app)-\($sim)").value')
+          echo -n " | [**$result**]($benchdir/$app/$sim/index.html)"
+        else
+          echo -n " | [**result**]($benchdir/$app/$sim/index.html)"
+        fi
       else
         echo -n " | n/a"
       fi
