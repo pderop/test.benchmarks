@@ -224,12 +224,12 @@ Each benchmark case starts with no traffic and does the following:
 - go to first step, unless the maximum concurrency of 1000 users is reached
 
 ## Benchmark cases
-- PlainText: frontend sends "text/plain" response body
-- Echo: clients sends "text/plain" and the frontend echoes that in the response
-- JsonGet: frontend sends a JSON payload
-- JsonPost: client sends a JSON payload, frontend deserializes it and replies with a JSON payload
-- HtmlGet: server renders an HTML view with a templating engine
-- Remote: frontend forward client request to the backend
+- PlainText: frontend responds a "text/plain" response body
+- Echo: gatling sends a "text/plain" request body and the frontend echoes that in the response
+- JsonGet: frontend responds with a JSON payload
+- JsonPost: gatling sends a JSON payload, frontend deserializes it and replies with a JSON payload
+- HtmlGet: front renders an HTML view with a templating engine
+- Remote: frontend forwards gatling request to the backend
 
 EOF
 }
