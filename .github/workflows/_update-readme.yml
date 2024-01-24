@@ -19,11 +19,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 'gh-pages'
+          ref: 'main'
           fetch-depth: 0
 
       - name: Update README and commit
         run: |-
+          git checkout gh-pages
           git checkout main -- ${SCRIPTS_DIR}
           git restore --stage ${SCRIPTS_DIR}
           . ${SCRIPTS_DIR}/libs.sh
