@@ -84,7 +84,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Check for updates
         id: check_updated
@@ -133,7 +133,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       # GCP authentication via credentials json (TODO replace by OpenId)
       - id: 'auth'
