@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1706133680389,
+  "lastUpdate": 1706134198317,
   "repoUrl": "https://github.com/pderop/test.benchmarks",
   "entries": {
     "Trends for benchmark-rn-11x-H2": [
@@ -176,6 +176,33 @@ window.BENCHMARK_DATA = {
           {
             "name": "benchmark-rn-11x-H2-Remote",
             "value": 25790.7,
+            "unit": "mean requests/sec"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Pierre De Rop",
+            "username": "pderop",
+            "email": "pierre.de-rop@broadcom.com"
+          },
+          "committer": {
+            "name": "Pierre De Rop",
+            "username": "pderop",
+            "email": "pierre.de-rop@broadcom.com"
+          },
+          "id": "7646814470",
+          "message": "No new commit since last benchmark.",
+          "timestamp": "2024-01-24T21:56:12Z",
+          "url": "https://github.com/pderop/test.benchmarks/actions/runs/7646814470"
+        },
+        "date": 1706134197600,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "benchmark-rn-11x-H2-Remote",
+            "value": 29781.583,
             "unit": "mean requests/sec"
           }
         ]
