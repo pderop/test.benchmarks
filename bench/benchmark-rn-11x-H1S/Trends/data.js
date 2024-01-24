@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1705877376636,
+  "lastUpdate": 1706134208483,
   "repoUrl": "https://github.com/pderop/test.benchmarks",
   "entries": {
     "Trends for benchmark-rn-11x-H1S": [
@@ -149,6 +149,33 @@ window.BENCHMARK_DATA = {
           {
             "name": "benchmark-rn-11x-H1S-TextPlain",
             "value": 74643.933,
+            "unit": "mean requests/sec"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Pierre De Rop",
+            "username": "pderop",
+            "email": "pierre.de-rop@broadcom.com"
+          },
+          "committer": {
+            "name": "Pierre De Rop",
+            "username": "pderop",
+            "email": "pierre.de-rop@broadcom.com"
+          },
+          "id": "7646814470",
+          "message": "New commits since last benchmark:\n\n\thttps://github.com/reactor/reactor-netty/compare/145a0dbf3d20f48ec2d09ec5fd0a2cda198d44ce..6acd1576210eeef8a0d00b2c3ca4c8a957a156eb",
+          "timestamp": "2024-01-24T21:56:12Z",
+          "url": "https://github.com/pderop/test.benchmarks/actions/runs/7646814470"
+        },
+        "date": 1706134207804,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "benchmark-rn-11x-H1S-Remote",
+            "value": 31117.083,
             "unit": "mean requests/sec"
           }
         ]
