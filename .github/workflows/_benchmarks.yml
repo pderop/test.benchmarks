@@ -64,7 +64,7 @@ on:
         value: ${{ jobs.init-benchmark.outputs.changed }}
 
 env:
-  SCRIPTS_DIR: ./main-repo/.github/scripts
+  SCRIPTS_DIR: .github/scripts
   APP_NAME: ${{ inputs.appname }}
 
 jobs:
@@ -82,22 +82,19 @@ jobs:
       commits_diff: ${{ steps.check_updated.outputs.COMMITS_DIFF }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
-      - uses: actions/checkout@v3
-        with:
-          ref: 'main'
-          path: main-repo
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Check for updates
         id: check_updated
         run: |-
-          . ${SCRIPTS_DIR}/libs.sh
           git checkout gh-pages
+          git checkout main -- ${SCRIPTS_DIR}
+          git restore --stage ${SCRIPTS_DIR}
+          . ${SCRIPTS_DIR}/libs.sh
           check_for_new_commits "$DEPENDENCIES" bench/$APP_NAME/Trends/.history $GITHUB_OUTPUT
+          rm -rf ${SCRIPTS_DIR}
 
   run-benchmark:
     name: Deploy benchmark
@@ -134,21 +131,9 @@ jobs:
           echo "BACKEND_RENAMED_APP=backend-$APP_NAME" >> $GITHUB_ENV
           if [ -n $BACKEND_APP ]; then echo "BACKEND_VM=$(echo backend-$APP_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV; fi
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-
-      - uses: actions/checkout@v3
-        with:
-          ref: 'main'
-          path: main-repo
-          fetch-depth: 0
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '19'
-          distribution: 'temurin'
+          fetch-depth: 1
 
       # GCP authentication via credentials json (TODO replace by OpenId)
       - id: 'auth'
@@ -258,13 +243,16 @@ jobs:
 
       - name: Prepare results
         run: |-
-          . ${SCRIPTS_DIR}/libs.sh
           git checkout gh-pages
+          git checkout main -- ${SCRIPTS_DIR}
+          git restore --stage ${SCRIPTS_DIR}
+          . ${SCRIPTS_DIR}/libs.sh
           tar zxf bench-$APP_NAME.tgz
           rm -f bench.tgz
           update_benchmark_history bench/$APP_NAME/Trends/.history "${{ needs.init-benchmark.outputs.commits }}" 
           transform_benchmark_json_data bench/$APP_NAME/Trends/data.js "Trends for $APP_NAME" $JOB_URL $GITHUB_RUN_ID "${{ needs.init-benchmark.outputs.commits_diff }}" 
           cp -f ${SCRIPTS_DIR}/benchmark-index-template.html bench/$APP_NAME/Trends/index.html
+          rm -rf ${SCRIPTS_DIR}
 
       - name: Upload results
         uses: actions/upload-artifact@v3
@@ -314,9 +302,10 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: 'gh-pages'
+          fetch-depth: 1
 
       - name: Download results
         uses: actions/download-artifact@v3
