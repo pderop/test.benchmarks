@@ -14,19 +14,21 @@ jobs:
       CI_COMMIT_MESSAGE: Update README
       CI_COMMIT_AUTHOR: ${{ github.event.repository.name }} Benchmarks
       CI_COMMIT_EMAIL: $GITHUB_TRIGGERING_ACTOR@users.noreply.github.com
-      SCRIPTS_DIR: .github/scripts
+      SCRIPTS_DIR: ./main-repo/.github/scripts
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
+        with:
+          ref: 'gh-pages'
+          fetch-depth: 0
+
+      - uses: actions/checkout@v3
         with:
           ref: 'main'
-          fetch-depth: 0
+          path: main-repo
 
       - name: Update README and commit
         run: |-
-          git checkout gh-pages
-          git checkout main -- ${SCRIPTS_DIR}
-          git restore --stage ${SCRIPTS_DIR}
           . ${SCRIPTS_DIR}/libs.sh
           git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
           git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
@@ -41,4 +43,3 @@ jobs:
             git commit --allow-empty -m "${{ env.CI_COMMIT_MESSAGE }}"
             git push origin gh-pages:gh-pages
           fi
-          rm -rf ${SCRIPTS_DIR}
